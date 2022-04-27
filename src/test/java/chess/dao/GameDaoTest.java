@@ -49,9 +49,9 @@ class GameDaoTest {
 
         @Test
         void 게임이_존재하지_않는_경우_예외발생() {
-         assertThatThrownBy(() -> dao.findById(99999))
-                 .isInstanceOf(IllegalArgumentException.class)
-                 .hasMessage("존재하지 않는 게임입니다.");
+            assertThatThrownBy(() -> dao.findById(99999))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("존재하지 않는 게임입니다.");
         }
     }
 
@@ -104,6 +104,39 @@ class GameDaoTest {
             assertThatThrownBy(() -> dao.saveAndGetGeneratedId(invalidAuthInfo))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("게임을 생성하는데 실패하였습니다.");
+        }
+    }
+
+    @DisplayName("saveOpponent 메서드는 상대방 플레이어의 정보를 저장")
+    @Nested
+    class SaveOpponentTest {
+
+        @Test
+        void 방명에_대응되는_게임에_아직_상대방_플레이어가_없으면_저장_성공() {
+            dao.saveOpponent(new EncryptedAuthCredentials("참여자가_없는_게임", "비밀번호"));
+
+            String actual = jdbcTemplate.queryForObject(
+                    "SELECT opponent_password FROM game WHERE name = '참여자가_없는_게임'", String.class);
+
+            assertThat(actual).isEqualTo("비밀번호");
+        }
+
+        @Test
+        void 방주인의_비밀번호와_중복된_비밀번호_입력시_예외발생() {
+            EncryptedAuthCredentials invalidAuthInfo = new EncryptedAuthCredentials("참여자가_없는_게임", "encrypted5");
+
+            assertThatThrownBy(() -> dao.saveOpponent(invalidAuthInfo))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("상대방 플레이어로 참여하는 데 실패하였습니다.");
+        }
+
+        @Test
+        void 이미_상대방_플레이어가_존재하는_경우_예외발생() {
+            EncryptedAuthCredentials invalidAuthInfo = new EncryptedAuthCredentials("참여자가_있는_게임", "비밀번호");
+
+            assertThatThrownBy(() -> dao.saveOpponent(invalidAuthInfo))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("상대방 플레이어로 참여하는 데 실패하였습니다.");
         }
     }
 
