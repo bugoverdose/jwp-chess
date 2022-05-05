@@ -1,6 +1,8 @@
 ## Spring Web Chess
 
 - Spring MVC, Spring JDBC
+- Cookie 기반 인증 (ft. hashing)
+- 이벤트 소싱 기반 데이터 관리
 
 ## 개발환경 셋업
 
